@@ -9,7 +9,7 @@ const router = express.Router();
 /**
  * @swagger
  * tags:
- * - name: Users
+ * name: Users
  * description: User management
  */
 
@@ -57,8 +57,9 @@ router.post('/login', authUser);
  * type: string
  * password:
  * type: string
- * isAdmin:
- * type: boolean
+ * level:
+ * type: integer
+ * example: 1
  * responses:
  * 201:
  * description: User registered
@@ -69,7 +70,8 @@ router.post('/register',
     [
         body('name').notEmpty().withMessage('Name is required'),
         body('email').isEmail().withMessage('Please include a valid email'),
-        body('password').isLength({ min: 6 }).withMessage('Password must be 6 or more characters')
+        body('password').isLength({ min: 6 }).withMessage('Password must be 6 or more characters'),
+        body('level').optional().isIn([1, 2, 3]).withMessage('Level must be 1, 2, or 3')
     ],
     validate,
     registerUser

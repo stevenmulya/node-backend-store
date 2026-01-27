@@ -1,32 +1,33 @@
 import multer from 'multer';
 import path from 'path';
+import ApiError from '../utils/ApiError.js';
 
 const storage = multer.diskStorage({
     destination(req, file, cb) {
-        cb(null, 'public/uploads/');
+        cb(null, 'public/uploads/products/');
     },
     filename(req, file, cb) {
-        cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
+        cb(null, `prod-${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`);
     }
 });
 
-function checkFileType(file, cb) {
-    const filetypes = /jpg|jpeg|png/;
+const fileFilter = (req, file, cb) => {
+    const filetypes = /jpg|jpeg|png|webp/;
     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = filetypes.test(file.mimetype);
 
     if (extname && mimetype) {
-        return cb(null, true);
+        cb(null, true);
     } else {
-        cb('Images only!');
+        cb(new ApiError('Format file tidak didukung! Gunakan jpg, png, atau webp.', 400));
     }
-}
+};
 
 const upload = multer({
     storage,
-    fileFilter: function (req, file, cb) {
-        checkFileType(file, cb);
-    }
+    limits: { fileSize: 2 * 1024 * 1024 },
+    fileFilter
 });
 
+export const uploadMultipleImages = upload.array('images', 10);
 export default upload;

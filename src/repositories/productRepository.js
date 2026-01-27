@@ -1,0 +1,41 @@
+import Product from '../models/productModel.js';
+import User from '../models/userModel.js';
+import Category from '../models/categoryModel.js';
+import ProductImage from '../models/productImageModel.js';
+
+const defaultInclude = [
+    { model: User, as: 'creator', attributes: ['name', 'level'] },
+    { model: User, as: 'editor', attributes: ['name', 'level'] },
+    { model: User, as: 'remover', attributes: ['name', 'level'] },
+    { model: Category, as: 'category', include: [{ model: Category, as: 'parent' }] },
+    { model: ProductImage, as: 'images' }
+];
+
+export const findAll = async (specification = {}) => {
+    return await Product.findAll({
+        where: specification.where || {},
+        include: defaultInclude,
+        order: [['createdAt', 'DESC']]
+    });
+};
+
+export const findById = async (id) => {
+    return await Product.findByPk(id, { include: defaultInclude });
+};
+
+export const create = async (data, transaction) => {
+    return await Product.create(data, { transaction });
+};
+
+export const bulkCreateImages = async (images, transaction) => {
+    return await ProductImage.bulkCreate(images, { transaction });
+};
+
+export const update = async (id, data, transaction) => {
+    return await Product.update(data, { where: { id }, transaction });
+};
+
+export const softDelete = async (id, userId, transaction) => {
+    await Product.update({ deleted_by: userId }, { where: { id }, transaction });
+    return await Product.destroy({ where: { id }, transaction });
+};

@@ -1,24 +1,61 @@
+import { DataTypes } from 'sequelize';
+import bcrypt from 'bcryptjs';
 import db from '../config/database.js';
 
-const User = {
-    findByEmail: async (email) => {
-        const [rows] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
-        return rows[0];
+const User = db.define('user', {
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
     },
-
-    findById: async (id) => {
-        const [rows] = await db.query('SELECT id, name, email, isAdmin FROM users WHERE id = ?', [id]);
-        return rows[0];
+    name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+            notEmpty: true
+        }
     },
-
-    create: async (userData) => {
-        const { name, email, password, isAdmin } = userData;
-        const [result] = await db.query(
-            'INSERT INTO users (name, email, password, isAdmin) VALUES (?, ?, ?, ?)',
-            [name, email, password, isAdmin || false]
-        );
-        return result.insertId;
+    email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+        validate: {
+            isEmail: true
+        }
+    },
+    password: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+            len: [6, 100]
+        }
+    },
+    level: {
+        type: DataTypes.INTEGER,
+        defaultValue: 1,
+        validate: {
+            isIn: [[1, 2, 3]]
+        }
     }
+}, {
+    underscored: true,
+    defaultScope: {
+        attributes: { exclude: ['password'] }
+    },
+    scopes: {
+        withPassword: { attributes: {} }
+    }
+});
+
+User.beforeSave(async (user) => {
+    if (user.changed('password')) {
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(user.password, salt);
+    }
+});
+
+User.prototype.matchPassword = async function (enteredPassword) {
+    return await bcrypt.compare(enteredPassword, this.password);
 };
 
 export default User;

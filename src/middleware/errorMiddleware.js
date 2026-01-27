@@ -1,44 +1,37 @@
+import ApiError from '../utils/ApiError.js';
+
 const notFound = (req, res, next) => {
-    const error = new Error(`Not Found - ${req.originalUrl}`);
-    res.status(404);
-    next(error);
+    next(new ApiError(`Not Found - ${req.originalUrl}`, 404));
 };
 
 const errorHandler = (err, req, res, next) => {
-    // Default to 500 if status code is 200
-    let statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+    let statusCode = err.statusCode || 500;
     let message = err.message;
 
-    // --- CUSTOM DATABASE ERRORS (MySQL) ---
-    if (err.code === 'ER_ACCESS_DENIED_ERROR') {
-        statusCode = 500;
-        message = 'Database Error: Access denied. Invalid username or password.';
-    }
-    if (err.code === 'ECONNREFUSED') {
-        statusCode = 500;
-        message = 'Database Error: Connection refused. Is the database server running?';
-    }
-    if (err.code === 'ER_BAD_DB_ERROR') {
-        statusCode = 500;
-        message = `Database Error: Database '${process.env.DB_NAME}' not found.`;
+    if (err.name === 'SequelizeValidationError') {
+        statusCode = 400;
+        message = err.errors.map((e) => e.message).join(', ');
     }
 
-    // --- JWT AUTH ERRORS ---
+    if (err.name === 'SequelizeUniqueConstraintError') {
+        statusCode = 400;
+        message = 'Duplicate field value entered';
+    }
+
     if (err.name === 'JsonWebTokenError') {
         statusCode = 401;
-        message = 'Unauthorized: Invalid token.';
-    }
-    if (err.name === 'TokenExpiredError') {
-        statusCode = 401;
-        message = 'Unauthorized: Token expired. Please login again.';
+        message = 'Invalid token. Please log in again.';
     }
 
-    // --- FINAL RESPONSE ---
+    if (err.name === 'TokenExpiredError') {
+        statusCode = 401;
+        message = 'Your token has expired. Please log in again.';
+    }
+
     res.status(statusCode).json({
         success: false,
         status: statusCode,
         message: message,
-        // Stack trace visible only in development mode
         stack: process.env.NODE_ENV === 'production' ? null : err.stack,
     });
 };

@@ -1,40 +1,49 @@
-import Product from '../models/productModel.js';
-import ApiError from '../utils/ApiError.js';
+import * as productService from '../services/productService.js';
 import sendResponse from '../utils/ApiResponse.js';
 
-const getProducts = async (req, res, next) => {
+export const getProducts = async (req, res, next) => {
     try {
-        const products = await Product.findAll();
-        sendResponse(res, 200, 'Products retrieved successfully', products);
+        const data = await productService.getAllInventory();
+        sendResponse(res, 200, 'Products retrieved successfully', data);
     } catch (error) {
         next(error);
     }
 };
 
-const createProduct = async (req, res, next) => {
+export const getProductDetails = async (req, res, next) => {
     try {
-        const { name, price, description } = req.body;
-        
-        if (!req.file) {
-            throw new ApiError('Image upload is required', 400);
-        }
-
-        const image = `/uploads/${req.file.filename}`;
-        
-        const productId = await Product.create({ 
-            name, 
-            price, 
-            description, 
-            image,
-            createdBy: req.user.id 
-        });
-        
-        const newProduct = await Product.findById(productId);
-        
-        sendResponse(res, 201, 'Product created successfully', newProduct);
+        const data = await productService.getSingleProduct(req.params.id);
+        sendResponse(res, 200, 'Product details found', data);
     } catch (error) {
         next(error);
     }
 };
 
-export { getProducts, createProduct };
+export const addProduct = async (req, res, next) => {
+    try {
+        const productData = { ...req.body };
+        const data = await productService.storeProduct(productData, req.files, req.user.id);
+        sendResponse(res, 201, 'Product added successfully', data);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const updateProductDetails = async (req, res, next) => {
+    try {
+        const productData = { ...req.body };
+        const data = await productService.editProduct(req.params.id, productData, req.files, req.user.id);
+        sendResponse(res, 200, 'Product updated successfully', data);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const deleteProductEntry = async (req, res, next) => {
+    try {
+        await productService.removeProduct(req.params.id, req.user.id);
+        sendResponse(res, 200, 'Product moved to trash successfully');
+    } catch (error) {
+        next(error);
+    }
+};
