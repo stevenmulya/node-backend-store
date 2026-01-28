@@ -22,7 +22,4 @@ const Category = db.define('category', {
     timestamps: true
 });
 
-Category.hasMany(Category, { as: 'children', foreignKey: 'parent_id' });
-Category.belongsTo(Category, { as: 'parent', foreignKey: 'parent_id' });
-
 export default Category;

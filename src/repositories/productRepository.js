@@ -2,13 +2,23 @@ import Product from '../models/productModel.js';
 import User from '../models/userModel.js';
 import Category from '../models/categoryModel.js';
 import ProductImage from '../models/productImageModel.js';
+import ProductAttribute from '../models/productAttributeModel.js';
+import AttributeTemplate from '../models/attributeTemplateModel.js';
 
 const defaultInclude = [
-    { model: User, as: 'creator', attributes: ['name', 'level'] },
-    { model: User, as: 'editor', attributes: ['name', 'level'] },
-    { model: User, as: 'remover', attributes: ['name', 'level'] },
-    { model: Category, as: 'category', include: [{ model: Category, as: 'parent' }] },
-    { model: ProductImage, as: 'images' }
+    { model: User, as: 'creator', attributes: ['name'] },
+    { model: User, as: 'editor', attributes: ['name'] },
+    { 
+        model: Category, 
+        as: 'category', 
+        include: [{ model: Category, as: 'parent', attributes: ['name'] }] 
+    },
+    { model: ProductImage, as: 'images' },
+    { 
+        model: ProductAttribute, 
+        as: 'attributeValues',
+        include: [{ model: AttributeTemplate, as: 'template', attributes: ['name'] }]
+    }
 ];
 
 export const findAll = async (specification = {}) => {

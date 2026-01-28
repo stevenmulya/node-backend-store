@@ -9,11 +9,7 @@ import { fileURLToPath } from 'url';
 import db from './config/database.js';
 import specs from './config/swagger.js';
 
-import User from './models/userModel.js';
-import Product from './models/productModel.js';
-import Category from './models/categoryModel.js';
-import ProductImage from './models/productImageModel.js';
-
+import { initAssociations } from './models/associations.js';
 import userRoutes from './routes/userRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
@@ -37,8 +33,8 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
-
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/categories', categoryRoutes);
@@ -53,7 +49,9 @@ app.use(errorHandler);
 const startServer = async () => {
     try {
         await db.authenticate();
-        await db.sync({ alter: true });
+        initAssociations();
+        
+        await db.sync(); 
         
         const PORT = process.env.PORT || 5000;
         app.listen(PORT, () => {

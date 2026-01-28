@@ -24,6 +24,13 @@ export const deleteCategory = async (req, res, next) => {
         await categoryService.removeCategory(req.params.id);
         sendResponse(res, 200, 'Category deleted successfully');
     } catch (error) {
+        if (error.original && error.original.errno === 1451) {
+            return sendResponse(
+                res, 
+                400, 
+                "This category cannot be deleted because it is currently associated with existing products or sub-categories."
+            );
+        }
         next(error);
     }
 };

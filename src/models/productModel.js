@@ -1,8 +1,5 @@
 import { DataTypes } from 'sequelize';
 import db from '../config/database.js';
-import User from './userModel.js';
-import Category from './categoryModel.js';
-import ProductImage from './productImageModel.js';
 
 const Product = db.define('product', {
     id: {
@@ -14,6 +11,32 @@ const Product = db.define('product', {
         type: DataTypes.STRING, 
         allowNull: false,
         validate: { notEmpty: true }
+    },
+    slug: {
+        type: DataTypes.STRING,
+        unique: true,
+        allowNull: true
+    },
+    sku: {
+        type: DataTypes.STRING,
+        unique: true,
+        allowNull: true
+    },
+    is_published: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+    is_best_seller: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+    is_pinned: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+    similarities: {
+        type: DataTypes.TEXT,
+        allowNull: true
     },
     price: { 
         type: DataTypes.DECIMAL(10, 2), 
@@ -48,13 +71,5 @@ const Product = db.define('product', {
     timestamps: true,
     paranoid: true 
 });
-
-Product.belongsTo(User, { as: 'creator', foreignKey: 'created_by' });
-Product.belongsTo(User, { as: 'editor', foreignKey: 'updated_by' });
-Product.belongsTo(User, { as: 'remover', foreignKey: 'deleted_by' });
-
-Product.belongsTo(Category, { as: 'category', foreignKey: 'category_id' });
-Product.hasMany(ProductImage, { as: 'images', foreignKey: 'product_id' });
-ProductImage.belongsTo(Product, { foreignKey: 'product_id' });
 
 export default Product;
