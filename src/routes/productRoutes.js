@@ -9,6 +9,9 @@ router.route('/')
     .get(protect, authorize(1), productController.getProducts)
     .post(protect, authorize(2), uploadMultipleImages, productController.addProduct);
 
+router.patch('/bulk-unpublish', protect, authorize(2), productController.unpublishAllProducts);
+router.get('/export-csv', protect, authorize(1), productController.exportProductsToCSV);
+
 router.get('/attributes/templates', protect, authorize(1), productController.getAllTemplates);
 router.post('/attributes/templates', protect, authorize(2), productController.updateAttributeTemplates);
 router.get('/attributes/templates/:categoryId', protect, authorize(1), productController.getAttributeTemplates);

@@ -43,6 +43,26 @@ export const updateProductDetails = async (req, res, next) => {
     }
 };
 
+export const unpublishAllProducts = async (req, res, next) => {
+    try {
+        await productService.massUnpublish(req.user);
+        sendResponse(res, 200, 'All products have been unpublished successfully');
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const exportProductsToCSV = async (req, res, next) => {
+    try {
+        const csvData = await productService.generateProductCSV();
+        res.header('Content-Type', 'text/csv');
+        res.header('Content-Disposition', `attachment; filename="inventory-export-${Date.now()}.csv"`);
+        res.send(csvData);
+    } catch (error) {
+        next(error);
+    }
+};
+
 export const removeProduct = async (req, res, next) => {
     try {
         await productService.removeProduct(req.params.id, req.user);

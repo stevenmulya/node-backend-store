@@ -5,14 +5,24 @@ import ProductImage from './productImageModel.js';
 import AttributeTemplate from './attributeTemplateModel.js';
 import ProductAttribute from './productAttributeModel.js';
 import ProductHistory from './productHistoryModel.js';
+import ProductVideo from './productVideoModel.js';
+import ProductVariant from './productVariantModel.js';
 
 export const initAssociations = () => {
     Product.belongsTo(User, { as: 'creator', foreignKey: 'created_by' });
     Product.belongsTo(User, { as: 'editor', foreignKey: 'updated_by' });
     Product.belongsTo(User, { as: 'remover', foreignKey: 'deleted_by' });
     Product.belongsTo(Category, { as: 'category', foreignKey: 'category_id' });
-    Product.hasMany(ProductImage, { as: 'images', foreignKey: 'product_id', onDelete: 'CASCADE' });
     
+    Product.hasMany(ProductImage, { as: 'images', foreignKey: 'product_id', onDelete: 'CASCADE' });
+    ProductImage.belongsTo(Product, { foreignKey: 'product_id' });
+    
+    Product.hasMany(ProductVideo, { as: 'videos', foreignKey: 'product_id', onDelete: 'CASCADE' });
+    ProductVideo.belongsTo(Product, { foreignKey: 'product_id' });
+
+    Product.hasMany(ProductVariant, { as: 'variants', foreignKey: 'product_id', onDelete: 'CASCADE' });
+    ProductVariant.belongsTo(Product, { foreignKey: 'product_id' });
+
     Category.hasMany(Product, { foreignKey: 'category_id' });
     Category.hasMany(Category, { as: 'children', foreignKey: 'parent_id' });
     Category.belongsTo(Category, { as: 'parent', foreignKey: 'parent_id' });

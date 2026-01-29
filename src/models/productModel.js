@@ -22,6 +22,11 @@ const Product = db.define('product', {
         unique: true,
         allowNull: true
     },
+    product_type: {
+        type: DataTypes.ENUM('simple', 'variable'),
+        defaultValue: 'simple',
+        allowNull: false
+    },
     is_published: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
@@ -39,12 +44,28 @@ const Product = db.define('product', {
         allowNull: true
     },
     price: { 
-        type: DataTypes.DECIMAL(10, 2), 
+        type: DataTypes.DECIMAL(19, 2), 
         allowNull: false,
         validate: { isDecimal: true, min: 0 }
     },
     description: { type: DataTypes.TEXT },
     brand: { type: DataTypes.STRING },
+    weight: { 
+        type: DataTypes.INTEGER, 
+        defaultValue: 0 
+    },
+    length: { 
+        type: DataTypes.INTEGER, 
+        defaultValue: 0 
+    },
+    width: { 
+        type: DataTypes.INTEGER, 
+        defaultValue: 0 
+    },
+    height: { 
+        type: DataTypes.INTEGER, 
+        defaultValue: 0 
+    },
     category_id: {
         type: DataTypes.INTEGER,
         references: { model: 'categories', key: 'id' }
