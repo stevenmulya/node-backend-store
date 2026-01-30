@@ -6,6 +6,59 @@ import ProductVariant from '../models/productVariantModel.js';
 import db from '../config/database.js';
 import ApiError from '../utils/ApiError.js';
 import { trackDiff } from '../utils/activityLogger.js';
+import { calculateVariantActions } from '../utils/variantUtils.js';
+
+const syncVariants = async (productId, newVariants, transaction) => {
+    const currentVariants = await ProductVariant.findAll({ 
+        where: { product_id: productId },
+        attributes: ['id'],
+        transaction 
+    });
+
+    const currentIds = currentVariants.map(v => v.id);
+    
+    const { toDeleteIds, toUpdate, toCreate } = calculateVariantActions(currentIds, newVariants);
+
+    if (toDeleteIds.length > 0) {
+        await ProductVariant.destroy({ 
+            where: { id: toDeleteIds }, 
+            transaction 
+        });
+    }
+
+    for (const item of toUpdate) {
+        await ProductVariant.update({
+            sku: item.sku,
+            options: item.options,
+            price: item.price,
+            stock: item.stock,
+            weight: item.weight
+        }, { 
+            where: { id: item.id }, 
+            transaction 
+        });
+    }
+
+    if (toCreate.length > 0) {
+        const createPayload = toCreate.map(item => ({
+            ...item,
+            product_id: productId
+        }));
+        await ProductVariant.bulkCreate(createPayload, { transaction });
+    }
+};
+
+const replaceVideos = async (productId, videos, transaction) => {
+    await ProductVideo.destroy({ where: { product_id: productId }, transaction });
+    if (videos && videos.length > 0) {
+        const videoPayload = videos.map((vid, index) => ({
+            ...vid,
+            product_id: productId,
+            sort_order: index
+        }));
+        await ProductVideo.bulkCreate(videoPayload, { transaction });
+    }
+};
 
 export const getAllInventory = async (queryOptions, page = 1, limit = 10) => {
     const offset = (page - 1) * limit;
@@ -33,8 +86,10 @@ export const getSingleProduct = (id) => productRepo.findById(id);
 
 export const storeProduct = async (payload, files) => {
     let currentPayload = { ...payload };
+    let attempts = 0;
+    const MAX_RETRIES = 5;
 
-    while (true) {
+    while (attempts < MAX_RETRIES) {
         const transaction = await db.transaction();
         try {
             const { attributes, videos, variants, userId, ...productData } = currentPayload;
@@ -84,10 +139,12 @@ export const storeProduct = async (payload, files) => {
 
         } catch (error) {
             await transaction.rollback();
+            attempts++;
 
             if (error.name === 'SequelizeUniqueConstraintError') {
                 if (error.fields?.slug || error.message?.includes('slug')) {
-                    currentPayload.slug = `${currentPayload.slug}-${Date.now().toString().slice(-4)}`;
+                    const randomSuffix = Math.floor(Math.random() * 10000);
+                    currentPayload.slug = `${currentPayload.slug}-${randomSuffix}`;
                     continue;
                 }
                 if (error.fields?.sku || error.message?.includes('sku')) {
@@ -97,12 +154,15 @@ export const storeProduct = async (payload, files) => {
             throw error;
         }
     }
+    throw new ApiError("Failed to create product: Slug collision loop.", 500);
 };
 
 export const editProduct = async (id, payload, files) => {
     let currentPayload = { ...payload };
+    let attempts = 0;
+    const MAX_RETRIES = 5;
 
-    while (true) {
+    while (attempts < MAX_RETRIES) {
         const transaction = await db.transaction();
         try {
             const product = await productRepo.findById(id);
@@ -129,28 +189,16 @@ export const editProduct = async (id, payload, files) => {
             }
 
             if (videos) {
-                await ProductVideo.destroy({ where: { product_id: id }, transaction });
-                if (videos.length > 0) {
-                    const videoPayload = videos.map((vid, index) => ({
-                        ...vid,
-                        product_id: id,
-                        sort_order: index
-                    }));
-                    await ProductVideo.bulkCreate(videoPayload, { transaction });
-                }
+                await replaceVideos(id, videos, transaction);
             }
 
             let isVariantUpdated = false;
+            
             if (productData.product_type === 'variable' && variants) {
-                await ProductVariant.destroy({ where: { product_id: id }, transaction });
-                if (variants.length > 0) {
-                    const variantPayload = variants.map(variant => ({
-                        ...variant,
-                        product_id: id
-                    }));
-                    await ProductVariant.bulkCreate(variantPayload, { transaction });
-                }
+                await syncVariants(id, variants, transaction);
                 isVariantUpdated = true;
+            } else if (productData.product_type === 'simple') {
+                await ProductVariant.destroy({ where: { product_id: id }, transaction });
             }
 
             let updatedFields = trackDiff(oldData, { ...productData, attributes }, {}, templates) || [];
@@ -178,10 +226,12 @@ export const editProduct = async (id, payload, files) => {
 
         } catch (error) {
             await transaction.rollback();
+            attempts++;
 
             if (error.name === 'SequelizeUniqueConstraintError') {
                 if (error.fields?.slug || error.message?.includes('slug')) {
-                    currentPayload.slug = `${currentPayload.slug}-${Date.now().toString().slice(-4)}`;
+                    const randomSuffix = Math.floor(Math.random() * 10000);
+                    currentPayload.slug = `${currentPayload.slug}-${randomSuffix}`;
                     continue;
                 }
                 if (error.fields?.sku || error.message?.includes('sku')) {
@@ -191,6 +241,7 @@ export const editProduct = async (id, payload, files) => {
             throw error;
         }
     }
+    throw new ApiError("Failed to update product: Slug collision loop.", 500);
 };
 
 export const massUnpublish = async (userId) => {
