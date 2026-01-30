@@ -70,7 +70,7 @@ const Product = db.define('product', {
         type: DataTypes.INTEGER,
         references: { model: 'categories', key: 'id' }
     },
-    countInStock: { 
+    stock: { 
         type: DataTypes.INTEGER, 
         defaultValue: 0,
         validate: { min: 0 }

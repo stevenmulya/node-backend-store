@@ -32,16 +32,21 @@ const defaultInclude = [
     }
 ];
 
-export const findAll = async (specification = {}) => {
-    return await Product.findAll({
-        where: specification.where || {},
-        include: defaultInclude,
-        order: [
+export const findAll = async (options = {}) => {
+    const { count, rows } = await Product.findAndCountAll({
+        where: options.where || {},
+        include: options.include || defaultInclude,
+        order: options.order || [
             ['createdAt', 'DESC'],
             [{ model: ProductVideo, as: 'videos' }, 'sort_order', 'ASC'],
             [{ model: ProductVariant, as: 'variants' }, 'id', 'ASC']
-        ]
+        ],
+        limit: options.limit,
+        offset: options.offset,
+        distinct: true
     });
+
+    return { total: count, data: rows };
 };
 
 export const findById = async (id) => {
@@ -60,18 +65,6 @@ export const create = async (data, transaction) => {
 
 export const bulkCreateImages = async (images, transaction) => {
     return await ProductImage.bulkCreate(images, { transaction });
-};
-
-export const bulkCreateVideos = async (videos, transaction) => {
-    return await ProductVideo.bulkCreate(videos, { transaction });
-};
-
-export const bulkCreateVariants = async (variants, transaction) => {
-    return await ProductVariant.bulkCreate(variants, { transaction });
-};
-
-export const deleteVariantsByProductId = async (productId, transaction) => {
-    return await ProductVariant.destroy({ where: { product_id: productId }, transaction });
 };
 
 export const update = async (id, data, transaction) => {
