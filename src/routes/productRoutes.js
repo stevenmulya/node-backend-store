@@ -18,7 +18,6 @@ router.route('/')
     );
 
 router.patch('/bulk-unpublish', protect, authorize(2), productController.unpublishAllProducts);
-router.get('/export-csv', protect, authorize(1), productController.exportProductsToCSV);
 
 router.get('/attributes/templates', protect, authorize(1), productController.getAllTemplates);
 router.post('/attributes/templates', protect, authorize(2), productController.updateAttributeTemplates);

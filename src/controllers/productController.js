@@ -38,12 +38,6 @@ export const unpublishAllProducts = asyncHandler(async (req, res) => {
     sendResponse(res, 200, 'All products have been unpublished successfully');
 });
 
-export const exportProductsToCSV = asyncHandler(async (req, res) => {
-    res.header('Content-Type', 'text/csv');
-    res.header('Content-Disposition', `attachment; filename="inventory-export-${Date.now()}.csv"`);
-    await productService.streamProductCSV(res);
-});
-
 export const removeProduct = asyncHandler(async (req, res) => {
     await productService.removeProduct(req.params.id, req.user.id);
     sendResponse(res, 200, 'Product deleted successfully');

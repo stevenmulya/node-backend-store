@@ -260,68 +260,6 @@ export const massUnpublish = async (userId) => {
     }
 };
 
-export const streamProductCSV = async (res) => {
-    const BATCH_SIZE = 500;
-    let offset = 0;
-    
-    res.write('ID,Name,Slug,SKU,Brand,Category,Parent_Category,Type,Price,Stock,Status,Created_At,Variant_Details\n');
-
-    while (true) {
-        const { data: products } = await productRepo.findAll({
-            limit: BATCH_SIZE,
-            offset: offset,
-            raw: false
-        });
-
-        if (products.length === 0) break;
-
-        const chunk = products.map(p => {
-            const base = [
-                p.id,
-                `"${p.name.replace(/"/g, '""')}"`,
-                p.slug,
-                p.sku || '-',
-                p.brand || '-',
-                p.category ? `"${p.category.name}"` : 'Uncategorized',
-                p.category?.parent ? `"${p.category.parent.name}"` : '-',
-                p.product_type || 'simple',
-            ];
-
-            let price = p.price;
-            let stock = p.stock;
-            let variantsDetails = '-';
-
-            if (p.product_type === 'variable' && p.variants?.length > 0) {
-                stock = p.variants.reduce((acc, v) => acc + v.stock, 0);
-                const prices = p.variants.map(v => Number(v.price));
-                price = `${Math.min(...prices)} - ${Math.max(...prices)}`;
-                
-                variantsDetails = `"${p.variants.map(v => 
-                    `[${v.sku}: ${JSON.stringify(v.options).replace(/"/g, "'")} - Stock:${v.stock} - $${v.price}]`
-                ).join('; ')}"`;
-            }
-
-            return [
-                ...base,
-                price,
-                stock,
-                p.is_published ? 'Published' : 'Draft',
-                new Date(p.createdAt).toISOString().split('T')[0],
-                variantsDetails
-            ].join(',');
-        }).join('\n');
-
-        res.write(chunk + '\n');
-        
-        if (products.length < BATCH_SIZE) break;
-        offset += BATCH_SIZE;
-        
-        if (global.gc) global.gc();
-    }
-    
-    res.end();
-};
-
 export const removeProduct = async (id, userId) => {
     const transaction = await db.transaction();
     try {
