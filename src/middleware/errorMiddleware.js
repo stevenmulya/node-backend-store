@@ -15,7 +15,7 @@ const errorHandler = (err, req, res, next) => {
 
     if (err.name === 'SequelizeUniqueConstraintError') {
         statusCode = 400;
-        message = 'Duplicate field value entered';
+        message = 'Duplicate field value entered. Data already exists.';
     }
 
     if (err.name === 'JsonWebTokenError') {
@@ -28,11 +28,15 @@ const errorHandler = (err, req, res, next) => {
         message = 'Your token has expired. Please log in again.';
     }
 
+    if (statusCode === 500) {
+        console.error(err);
+    }
+
     res.status(statusCode).json({
         success: false,
         status: statusCode,
         message: message,
-        stack: process.env.NODE_ENV === 'production' ? null : err.stack,
+        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
     });
 };
 

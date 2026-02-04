@@ -32,7 +32,6 @@ export const getFields = asyncHandler(async (req, res) => {
 
         const statsMap = {};
         let total = 0;
-        const topOne = stats.length > 0 ? stats[0].answer : null;
         
         stats.forEach(s => {
             const count = parseInt(s.count);
@@ -40,12 +39,20 @@ export const getFields = asyncHandler(async (req, res) => {
             total += count;
         });
 
+        let topAnswers = [];
+        if (stats.length > 0) {
+            const maxCount = parseInt(stats[0].count);
+            topAnswers = stats
+                .filter(s => parseInt(s.count) === maxCount)
+                .map(s => s.answer);
+        }
+
         return {
             ...field.toJSON(),
             stats: {
                 counts: statsMap,
                 total: total,
-                topOne: topOne,
+                topAnswers: topAnswers,
                 firstResponse: timeRange?.first_response || null,
                 lastResponse: timeRange?.last_response || null
             }

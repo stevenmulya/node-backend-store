@@ -4,7 +4,6 @@ import * as historyService from '../services/historyService.js';
 import { buildInventoryQuery } from '../specifications/productSpecification.js';
 import sendResponse from '../utils/ApiResponse.js';
 import asyncHandler from '../utils/asyncHandler.js';
-import db from '../config/database.js';
 
 export const getProducts = asyncHandler(async (req, res) => {
     const page = parseInt(req.query.page) || 1;
@@ -49,16 +48,9 @@ export const getAttributeTemplates = asyncHandler(async (req, res) => {
 });
 
 export const updateAttributeTemplates = asyncHandler(async (req, res) => {
-    const transaction = await db.transaction();
-    try {
-        const { categoryId, fields } = req.body;
-        await attrService.updateTemplates(categoryId, fields, transaction);
-        await transaction.commit();
-        sendResponse(res, 200, 'Templates updated successfully');
-    } catch (error) {
-        await transaction.rollback();
-        throw error;
-    }
+    const { categoryId, fields } = req.body;
+    await attrService.updateTemplates(categoryId, fields);
+    sendResponse(res, 200, 'Templates updated successfully');
 });
 
 export const getAllTemplates = asyncHandler(async (req, res) => {
@@ -68,13 +60,5 @@ export const getAllTemplates = asyncHandler(async (req, res) => {
 
 export const getProductHistory = asyncHandler(async (req, res) => {
     const data = await historyService.getHistoryByProduct(req.params.id);
-    const formatted = data.map(h => ({
-        id: h.id,
-        action: h.action,
-        performed_by: h.performer?.name || 'System',
-        timestamp: h.createdAt,
-        changes: h.details,
-        product_name: h.product_name_at_time
-    }));
-    sendResponse(res, 200, 'History retrieved successfully', formatted);
+    sendResponse(res, 200, 'History retrieved successfully', data);
 });

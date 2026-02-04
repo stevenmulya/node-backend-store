@@ -10,12 +10,11 @@ const validate = (schema) => async (req, res, next) => {
 
         if (!result.success) {
             const errorMessages = result.error.errors.map((err) => {
-                const path = err.path.join('.').replace(/^(body\.|query\.|params\.)/, '');
-                return `${path}: ${err.message}`;
+                const field = err.path.join('.').replace(/^(body\.|query\.|params\.)/, '');
+                return `${field}: ${err.message}`;
             });
 
-            const message = errorMessages.join(', ');
-            return next(new ApiError(message, 400));
+            return next(new ApiError(errorMessages.join(' | '), 400));
         }
 
         if (result.data.body) req.body = result.data.body;
@@ -24,7 +23,7 @@ const validate = (schema) => async (req, res, next) => {
 
         next();
     } catch (error) {
-        next(error);
+        next(new ApiError('Validation Internal Error', 500));
     }
 };
 
