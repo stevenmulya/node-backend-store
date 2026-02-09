@@ -10,7 +10,6 @@ export const getCategoryTree = async () => {
     });
 
     const tree = [];
-
     categories.forEach(cat => {
         if (cat.parent_id) {
             if (categoryMap[cat.parent_id]) {

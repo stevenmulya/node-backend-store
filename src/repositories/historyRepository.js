@@ -1,5 +1,5 @@
-import ProductHistory from '../models/productHistoryModel.js';
-import User from '../models/userModel.js';
+import ProductHistory from '../models/product/productHistoryModel.js';
+import User from '../models/user/userModel.js';
 
 export const createHistory = async (data, transaction) => {
     return await ProductHistory.create(data, { transaction });

@@ -1,4 +1,4 @@
-import User from '../models/userModel.js';
+import User from '../models/user/userModel.js';
 
 export const findByEmail = async (email, includePassword = false) => {
     if (includePassword) {
@@ -13,4 +13,17 @@ export const findById = async (id) => {
 
 export const create = async (userData) => {
     return await User.create(userData);
+};
+
+export const update = async (id, userData) => {
+    const [updated] = await User.update(userData, {
+        where: { id }
+    });
+    return updated;
+};
+
+export const remove = async (id) => {
+    return await User.destroy({
+        where: { id }
+    });
 };

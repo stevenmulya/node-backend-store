@@ -1,5 +1,5 @@
 import { DataTypes } from 'sequelize';
-import db from '../config/database.js';
+import db from '../../config/database.js';
 
 const AttributeTemplate = db.define('attribute_template', {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },

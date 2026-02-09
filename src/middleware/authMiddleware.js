@@ -34,7 +34,7 @@ export const protect = async (req, res, next) => {
 
 export const authorize = (allowedRoles) => {
     return (req, res, next) => {
-        const userRole = req.user.level || req.user.role;
+        const userRole = req.user.level;
         const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
 
         if (roles.includes(userRole) || userRole >= Math.max(...roles)) {

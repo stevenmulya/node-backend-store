@@ -1,25 +1,18 @@
 import * as categoryService from '../services/categoryService.js';
 import sendResponse from '../utils/ApiResponse.js';
+import asyncHandler from '../utils/asyncHandler.js';
 
-export const getTree = async (req, res, next) => {
-    try {
-        const tree = await categoryService.getCategoryTree();
-        sendResponse(res, 200, 'Category tree retrieved', tree);
-    } catch (error) {
-        next(error);
-    }
-};
+export const getTree = asyncHandler(async (req, res) => {
+    const tree = await categoryService.getCategoryTree();
+    sendResponse(res, 200, 'Category tree retrieved', tree);
+});
 
-export const addCategory = async (req, res, next) => {
-    try {
-        const category = await categoryService.storeCategory(req.body);
-        sendResponse(res, 201, 'Category created successfully', category);
-    } catch (error) {
-        next(error);
-    }
-};
+export const addCategory = asyncHandler(async (req, res) => {
+    const category = await categoryService.storeCategory(req.body);
+    sendResponse(res, 201, 'Category created successfully', category);
+});
 
-export const deleteCategory = async (req, res, next) => {
+export const deleteCategory = asyncHandler(async (req, res) => {
     try {
         await categoryService.removeCategory(req.params.id);
         sendResponse(res, 200, 'Category deleted successfully');
@@ -31,6 +24,6 @@ export const deleteCategory = async (req, res, next) => {
                 "This category cannot be deleted because it is currently associated with existing products or sub-categories."
             );
         }
-        next(error);
+        throw error;
     }
-};
+});

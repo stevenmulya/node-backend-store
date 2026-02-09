@@ -1,7 +1,7 @@
 import { Op } from 'sequelize';
-import Order from '../models/orderModel.js';
-import OrderItem from '../models/orderItemModel.js';
-import Customer from '../models/customerModel.js';
+import Order from '../models/order/orderModel.js';
+import OrderItem from '../models/order/orderItemModel.js';
+import Customer from '../models/customer/customerModel.js';
 
 export const createOrder = async (orderData, transaction) => {
     return await Order.create(orderData, { transaction });
@@ -22,8 +22,8 @@ export const findOrdersByCustomer = async (customerId) => {
 export const findOrderById = async (orderId) => {
     return await Order.findByPk(orderId, {
         include: [
-            { 
-                model: OrderItem, 
+            {
+                model: OrderItem,
                 as: 'items'
             },
             {
@@ -39,15 +39,10 @@ export const findAllOrders = async ({ page, limit, search, sort }) => {
     const offset = (page - 1) * limit;
     let orderOptions = [['created_at', 'DESC']];
 
-    const whereCondition = {};
-    const includeCondition = [
-        { 
-            model: Customer, 
-            as: 'customer',
-            attributes: ['id', 'name', 'email'] 
-        }
-    ];
+    if (sort === 'oldest') orderOptions = [['created_at', 'ASC']];
 
+    const whereCondition = {};
+    
     if (search) {
         whereCondition[Op.or] = [
             { invoice_number: { [Op.like]: `%${search}%` } },
@@ -57,15 +52,18 @@ export const findAllOrders = async ({ page, limit, search, sort }) => {
 
     const { count, rows } = await Order.findAndCountAll({
         where: whereCondition,
-        include: includeCondition,
+        include: [
+            {
+                model: Customer,
+                as: 'customer',
+                attributes: ['id', 'name', 'email']
+            }
+        ],
         limit,
         offset,
         order: orderOptions,
         distinct: true
     });
 
-    return {
-        count,
-        rows
-    };
+    return { count, rows };
 };

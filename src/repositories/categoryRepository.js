@@ -1,4 +1,4 @@
-import Category from '../models/categoryModel.js';
+import Category from '../models/product/categoryModel.js';
 
 export const findAll = async () => {
     return await Category.findAll({ order: [['name', 'ASC']] });
@@ -6,7 +6,10 @@ export const findAll = async () => {
 
 export const findById = async (id) => {
     return await Category.findByPk(id, {
-        include: [{ model: Category, as: 'children' }, { model: Category, as: 'parent' }]
+        include: [
+            { model: Category, as: 'children' }, 
+            { model: Category, as: 'parent' }
+        ]
     });
 };
 

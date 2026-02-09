@@ -1,8 +1,8 @@
 import { Op } from 'sequelize';
-import Customer from '../models/customerModel.js';
-import CustomerAddress from '../models/customerAddressModel.js';
-import CustomerFormField from '../models/customerFormFieldModel.js';
-import CustomerResponse from '../models/customerResponseModel.js';
+import Customer from '../models/customer/customerModel.js';
+import CustomerAddress from '../models/customer/customerAddressModel.js';
+import CustomerFormField from '../models/customer/customerFormFieldModel.js';
+import CustomerResponse from '../models/customer/customerResponseModel.js';
 
 export const create = async (data, options) => {
     return await Customer.create(data, options);

@@ -1,5 +1,5 @@
 import db from '../src/config/database.js';
-import User from '../src/models/userModel.js';
+import User from '../src/models/user/userModel.js';
 
 const admins = [
     { 

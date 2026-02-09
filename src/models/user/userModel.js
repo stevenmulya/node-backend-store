@@ -1,6 +1,6 @@
 import { DataTypes } from 'sequelize';
 import bcrypt from 'bcryptjs';
-import db from '../config/database.js';
+import db from '../../config/database.js';
 
 const User = db.define('user', {
     id: {
@@ -11,31 +11,23 @@ const User = db.define('user', {
     name: {
         type: DataTypes.STRING,
         allowNull: false,
-        validate: {
-            notEmpty: true
-        }
+        validate: { notEmpty: true }
     },
     email: {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true,
-        validate: {
-            isEmail: true
-        }
+        validate: { isEmail: true }
     },
     password: {
         type: DataTypes.STRING,
         allowNull: false,
-        validate: {
-            len: [6, 100]
-        }
+        validate: { len: [6, 100] }
     },
     level: {
         type: DataTypes.INTEGER,
         defaultValue: 1,
-        validate: {
-            isIn: [[1, 2, 3]]
-        }
+        validate: { isIn: [[1, 2, 3]] }
     }
 }, {
     underscored: true,
@@ -43,7 +35,7 @@ const User = db.define('user', {
         attributes: { exclude: ['password'] }
     },
     scopes: {
-        withPassword: { attributes: {} }
+        withPassword: { attributes: { include: ['password'] } }
     }
 });
 

@@ -1,20 +1,20 @@
-import User from './userModel.js';
-import Product from './productModel.js';
-import Category from './categoryModel.js';
-import ProductImage from './productImageModel.js';
-import AttributeTemplate from './attributeTemplateModel.js';
-import ProductAttribute from './productAttributeModel.js';
-import ProductHistory from './productHistoryModel.js';
-import ProductVideo from './productVideoModel.js';
-import ProductVariant from './productVariantModel.js';
-import Customer from './customerModel.js';
-import CustomerAddress from './customerAddressModel.js';
-import CustomerFormField from './customerFormFieldModel.js';
-import CustomerResponse from './customerResponseModel.js';
-import Cart from './cartModel.js';
-import CartItem from './cartItemModel.js';
-import Order from './orderModel.js';
-import OrderItem from './orderItemModel.js';
+import User from './user/userModel.js';
+import Product from './product/productModel.js';
+import Category from './product/categoryModel.js';
+import ProductImage from './product/productImageModel.js';
+import AttributeTemplate from './product/attributeTemplateModel.js';
+import ProductAttribute from './product/productAttributeModel.js';
+import ProductHistory from './product/productHistoryModel.js';
+import ProductVideo from './product/productVideoModel.js';
+import ProductVariant from './product/productVariantModel.js';
+import Customer from './customer/customerModel.js';
+import CustomerAddress from './customer/customerAddressModel.js';
+import CustomerFormField from './customer/customerFormFieldModel.js';
+import CustomerResponse from './customer/customerResponseModel.js';
+import Cart from './cart/cartModel.js';
+import CartItem from './cart/cartItemModel.js';
+import Order from './order/orderModel.js';
+import OrderItem from './order/orderItemModel.js';
 
 export const initAssociations = () => {
     Product.belongsTo(User, { as: 'creator', foreignKey: 'created_by' });

@@ -1,5 +1,5 @@
-import CustomerFormField from '../models/customerFormFieldModel.js';
-import CustomerResponse from '../models/customerResponseModel.js';
+import CustomerFormField from '../models/customer/customerFormFieldModel.js';
+import CustomerResponse from '../models/customer/customerResponseModel.js';
 import sendResponse from '../utils/ApiResponse.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { Sequelize } from 'sequelize';

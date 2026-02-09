@@ -1,5 +1,5 @@
 import { DataTypes } from 'sequelize';
-import db from '../config/database.js';
+import db from '../../config/database.js';
 
 const Product = db.define('product', {
     id: {
@@ -50,22 +50,10 @@ const Product = db.define('product', {
     },
     description: { type: DataTypes.TEXT },
     brand: { type: DataTypes.STRING },
-    weight: { 
-        type: DataTypes.INTEGER, 
-        defaultValue: 0 
-    },
-    length: { 
-        type: DataTypes.INTEGER, 
-        defaultValue: 0 
-    },
-    width: { 
-        type: DataTypes.INTEGER, 
-        defaultValue: 0 
-    },
-    height: { 
-        type: DataTypes.INTEGER, 
-        defaultValue: 0 
-    },
+    weight: { type: DataTypes.INTEGER, defaultValue: 0 },
+    length: { type: DataTypes.INTEGER, defaultValue: 0 },
+    width: { type: DataTypes.INTEGER, defaultValue: 0 },
+    height: { type: DataTypes.INTEGER, defaultValue: 0 },
     category_id: {
         type: DataTypes.INTEGER,
         references: { model: 'categories', key: 'id' }
@@ -90,7 +78,13 @@ const Product = db.define('product', {
 }, {
     underscored: true,
     timestamps: true,
-    paranoid: true 
+    paranoid: true,
+    indexes: [
+        { name: 'product_category_idx', fields: ['category_id'] },
+        { name: 'product_status_idx', fields: ['is_published', 'is_pinned', 'is_best_seller'] },
+        { name: 'product_brand_idx', fields: ['brand'] },
+        { name: 'product_created_at_idx', fields: ['created_at'] }
+    ]
 });
 
 export default Product;

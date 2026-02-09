@@ -1,8 +1,8 @@
 import * as productRepo from '../repositories/productRepository.js';
 import * as attrService from './attributeService.js';
 import * as historyService from './historyService.js';
-import ProductVideo from '../models/productVideoModel.js';
-import ProductVariant from '../models/productVariantModel.js';
+import ProductVideo from '../models/product/productVideoModel.js';
+import ProductVariant from '../models/product/productVariantModel.js';
 import db from '../config/database.js';
 import ApiError from '../utils/ApiError.js';
 import { trackDiff } from '../utils/activityLogger.js';
@@ -16,14 +16,10 @@ const syncVariants = async (productId, newVariants, transaction) => {
     });
 
     const currentIds = currentVariants.map(v => v.id);
-    
     const { toDeleteIds, toUpdate, toCreate } = calculateVariantActions(currentIds, newVariants);
 
     if (toDeleteIds.length > 0) {
-        await ProductVariant.destroy({ 
-            where: { id: toDeleteIds }, 
-            transaction 
-        });
+        await ProductVariant.destroy({ where: { id: toDeleteIds }, transaction });
     }
 
     for (const item of toUpdate) {
@@ -33,24 +29,18 @@ const syncVariants = async (productId, newVariants, transaction) => {
             price: item.price,
             stock: item.stock,
             weight: item.weight
-        }, { 
-            where: { id: item.id }, 
-            transaction 
-        });
+        }, { where: { id: item.id }, transaction });
     }
 
     if (toCreate.length > 0) {
-        const createPayload = toCreate.map(item => ({
-            ...item,
-            product_id: productId
-        }));
+        const createPayload = toCreate.map(item => ({ ...item, product_id: productId }));
         await ProductVariant.bulkCreate(createPayload, { transaction });
     }
 };
 
 const replaceVideos = async (productId, videos, transaction) => {
     await ProductVideo.destroy({ where: { product_id: productId }, transaction });
-    if (videos && videos.length > 0) {
+    if (videos?.length > 0) {
         const videoPayload = videos.map((vid, index) => ({
             ...vid,
             product_id: productId,
@@ -61,15 +51,11 @@ const replaceVideos = async (productId, videos, transaction) => {
 };
 
 export const getAllInventory = async (queryOptions, page = 1, limit = 10) => {
-    const offset = (page - 1) * limit;
-    
-    const optionsWithPagination = {
+    const { total, data } = await productRepo.findAll({
         ...queryOptions,
         limit: parseInt(limit),
-        offset: parseInt(offset)
-    };
-
-    const { total, data } = await productRepo.findAll(optionsWithPagination);
+        offset: (parseInt(page) - 1) * parseInt(limit)
+    });
 
     return {
         data,
@@ -99,11 +85,9 @@ export const storeProduct = async (payload, files) => {
                 created_by: userId
             }, transaction);
             
-            if (attributes) {
-                await attrService.syncProductAttributes(product.id, attributes, transaction);
-            }
+            if (attributes) await attrService.syncProductAttributes(product.id, attributes, transaction);
 
-            if (files && files.length > 0) {
+            if (files?.length > 0) {
                 const imagePayload = files.map((file, index) => ({
                     product_id: product.id,
                     url: file.path || file.secure_url, 
@@ -112,20 +96,10 @@ export const storeProduct = async (payload, files) => {
                 await productRepo.bulkCreateImages(imagePayload, transaction);
             }
             
-            if (videos && videos.length > 0) {
-                const videoPayload = videos.map((vid, index) => ({
-                    ...vid,
-                    product_id: product.id,
-                    sort_order: index
-                }));
-                await ProductVideo.bulkCreate(videoPayload, { transaction });
-            }
+            if (videos?.length > 0) await replaceVideos(product.id, videos, transaction);
 
-            if (productData.product_type === 'variable' && variants && variants.length > 0) {
-                const variantPayload = variants.map(variant => ({
-                    ...variant,
-                    product_id: product.id
-                }));
+            if (productData.product_type === 'variable' && variants?.length > 0) {
+                const variantPayload = variants.map(v => ({ ...v, product_id: product.id }));
                 await ProductVariant.bulkCreate(variantPayload, { transaction });
             }
 
@@ -139,22 +113,18 @@ export const storeProduct = async (payload, files) => {
 
         } catch (error) {
             await transaction.rollback();
-            attempts++;
-
-            if (error.name === 'SequelizeUniqueConstraintError') {
-                if (error.fields?.slug || error.message?.includes('slug')) {
-                    const randomSuffix = Math.floor(Math.random() * 10000);
-                    currentPayload.slug = `${currentPayload.slug}-${randomSuffix}`;
-                    continue;
-                }
-                if (error.fields?.sku || error.message?.includes('sku')) {
-                    throw new ApiError(`SKU '${currentPayload.sku}' already exists.`, 400);
-                }
+            if (error.name === 'SequelizeUniqueConstraintError' && (error.fields?.slug || error.message?.includes('slug'))) {
+                currentPayload.slug = `${currentPayload.slug}-${Math.floor(Math.random() * 10000)}`;
+                attempts++;
+                continue;
+            }
+            if (error.name === 'SequelizeUniqueConstraintError' && (error.fields?.sku || error.message?.includes('sku'))) {
+                throw new ApiError(`SKU '${currentPayload.sku}' already exists.`, 400);
             }
             throw error;
         }
     }
-    throw new ApiError("Failed to create product: Slug collision loop.", 500);
+    throw new ApiError("Failed to create product: Slug collision limit reached.", 500);
 };
 
 export const editProduct = async (id, payload, files) => {
@@ -170,16 +140,13 @@ export const editProduct = async (id, payload, files) => {
 
             const { attributes, videos, variants, userId, ...productData } = currentPayload;
             const oldData = product.get({ plain: true });
-
             const templates = await attrService.getTemplates(product.category_id);
 
             await productRepo.update(id, { ...productData, updated_by: userId }, transaction);
             
-            if (attributes) {
-                await attrService.syncProductAttributes(id, attributes, transaction);
-            }
+            if (attributes) await attrService.syncProductAttributes(id, attributes, transaction);
 
-            if (files && files.length > 0) {
+            if (files?.length > 0) {
                 const imagePayload = files.map(file => ({
                     product_id: id,
                     url: file.path || file.secure_url,
@@ -188,12 +155,9 @@ export const editProduct = async (id, payload, files) => {
                 await productRepo.bulkCreateImages(imagePayload, transaction);
             }
 
-            if (videos) {
-                await replaceVideos(id, videos, transaction);
-            }
+            if (videos) await replaceVideos(id, videos, transaction);
 
             let isVariantUpdated = false;
-            
             if (productData.product_type === 'variable' && variants) {
                 await syncVariants(id, variants, transaction);
                 isVariantUpdated = true;
@@ -202,21 +166,16 @@ export const editProduct = async (id, payload, files) => {
             }
 
             let updatedFields = trackDiff(oldData, { ...productData, attributes }, {}, templates) || [];
-            
             if (productData.product_type === 'variable') {
-                updatedFields = updatedFields.filter(field => field !== 'price' && field !== 'stock');
+                updatedFields = updatedFields.filter(f => f !== 'price' && f !== 'stock');
             }
+            if (isVariantUpdated) updatedFields.push('variants');
 
-            if (isVariantUpdated) {
-                updatedFields.push('variants');
-            }
-
-            updatedFields = [...new Set(updatedFields)];
-            
-            if (updatedFields.length > 0) {
+            const finalFields = [...new Set(updatedFields)];
+            if (finalFields.length > 0) {
                 await historyService.recordActivity(
                     id, oldData.name, 'UPDATED', userId,
-                    { updated_fields: updatedFields }, 
+                    { updated_fields: finalFields }, 
                     transaction
                 );
             }
@@ -226,22 +185,15 @@ export const editProduct = async (id, payload, files) => {
 
         } catch (error) {
             await transaction.rollback();
-            attempts++;
-
-            if (error.name === 'SequelizeUniqueConstraintError') {
-                if (error.fields?.slug || error.message?.includes('slug')) {
-                    const randomSuffix = Math.floor(Math.random() * 10000);
-                    currentPayload.slug = `${currentPayload.slug}-${randomSuffix}`;
-                    continue;
-                }
-                if (error.fields?.sku || error.message?.includes('sku')) {
-                    throw new ApiError(`SKU '${currentPayload.sku}' already exists.`, 400);
-                }
+            if (error.name === 'SequelizeUniqueConstraintError' && (error.fields?.slug || error.message?.includes('slug'))) {
+                currentPayload.slug = `${currentPayload.slug}-${Math.floor(Math.random() * 10000)}`;
+                attempts++;
+                continue;
             }
             throw error;
         }
     }
-    throw new ApiError("Failed to update product: Slug collision loop.", 500);
+    throw new ApiError("Failed to update product: Slug collision limit reached.", 500);
 };
 
 export const massUnpublish = async (userId) => {

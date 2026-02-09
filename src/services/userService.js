@@ -11,7 +11,7 @@ export const loginUser = async (email, password) => {
             name: user.name,
             email: user.email,
             level: user.level,
-            token: generateToken(user.id)
+            token: generateToken(user.id, user.level)
         };
     }
     
@@ -29,6 +29,6 @@ export const registerUser = async (userData) => {
         name: user.name,
         email: user.email,
         level: user.level,
-        token: generateToken(user.id)
+        token: generateToken(user.id, user.level)
     };
 };
