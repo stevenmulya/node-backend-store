@@ -1,0 +1,15 @@
+model ItemUpdateHistory {
+  id         String   @id @default(uuid())
+  itemId     String   @map("item_id")
+  itemName   String   @map("item_name") @db.VarChar(255)
+  userId     String   @map("user_id") @db.VarChar(100)
+  userName   String   @map("user_name") @db.VarChar(255)
+  columnName String   @map("column_name") @db.VarChar(100)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  item       Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@map("item_update_histories")
+  @@index([itemId])
+  @@index([userId])
+}

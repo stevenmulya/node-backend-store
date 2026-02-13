@@ -1,64 +1,72 @@
-import * as productService from '../services/productService.js';
-import * as attrService from '../services/attributeService.js';
-import * as historyService from '../services/historyService.js';
-import { buildInventoryQuery } from '../specifications/productSpecification.js';
-import sendResponse from '../utils/ApiResponse.js';
-import asyncHandler from '../utils/asyncHandler.js';
+// import * as productService from '../services/productService.js';
+// import * as attrService from '../services/attributeService.js';
+// import * as historyService from '../services/historyService.js';
+// import * as categoryService from '../services/categoryService.js';
+// import { buildInventoryQuery } from '../specifications/productSpecification.js';
+// import sendResponse from '../utils/ApiResponse.js';
+// import asyncHandler from '../utils/asyncHandler.js';
 
-export const getProducts = asyncHandler(async (req, res) => {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const queryOptions = buildInventoryQuery(req.query);
+// export const getProducts = asyncHandler(async (req, res) => {
+//     const page = parseInt(req.query.page) || 1;
+//     const limit = parseInt(req.query.limit) || 10;
     
-    const result = await productService.getAllInventory(queryOptions, page, limit);
-    sendResponse(res, 200, 'Products retrieved successfully', result.data, result.meta);
-});
+//     const filters = { ...req.query };
 
-export const getProductDetails = asyncHandler(async (req, res) => {
-    const data = await productService.getSingleProduct(req.params.id);
-    if (!data) return sendResponse(res, 404, 'Product not found');
-    sendResponse(res, 200, 'Product details retrieved', data);
-});
+//     if (filters.category_id && filters.category_id !== 'all') {
+//         filters.category_id = await categoryService.getAllChildrenIds(filters.category_id);
+//     }
 
-export const addProduct = asyncHandler(async (req, res) => {
-    const payload = { ...req.body, userId: req.user.id };
-    const data = await productService.storeProduct(payload, req.files);
-    sendResponse(res, 201, 'Product added successfully', data);
-});
+//     const queryOptions = buildInventoryQuery(filters);
+    
+//     const result = await productService.getAllInventory(queryOptions, page, limit);
+//     sendResponse(res, 200, 'Products retrieved successfully', result.data, result.meta);
+// });
 
-export const updateProductDetails = asyncHandler(async (req, res) => {
-    const payload = { ...req.body, userId: req.user.id };
-    const data = await productService.editProduct(req.params.id, payload, req.files);
-    sendResponse(res, 200, 'Product updated successfully', data);
-});
+// export const getProductDetails = asyncHandler(async (req, res) => {
+//     const data = await productService.getSingleProduct(req.params.id);
+//     if (!data) return sendResponse(res, 404, 'Product not found');
+//     sendResponse(res, 200, 'Product details retrieved', data);
+// });
 
-export const unpublishAllProducts = asyncHandler(async (req, res) => {
-    await productService.massUnpublish(req.user.id);
-    sendResponse(res, 200, 'All products have been unpublished successfully');
-});
+// export const addProduct = asyncHandler(async (req, res) => {
+//     const payload = { ...req.body, userId: req.user.id };
+//     const data = await productService.storeProduct(payload, req.files);
+//     sendResponse(res, 201, 'Product added successfully', data);
+// });
 
-export const removeProduct = asyncHandler(async (req, res) => {
-    await productService.removeProduct(req.params.id, req.user.id);
-    sendResponse(res, 200, 'Product deleted successfully');
-});
+// export const updateProductDetails = asyncHandler(async (req, res) => {
+//     const payload = { ...req.body, userId: req.user.id };
+//     const data = await productService.editProduct(req.params.id, payload, req.files);
+//     sendResponse(res, 200, 'Product updated successfully', data);
+// });
 
-export const getAttributeTemplates = asyncHandler(async (req, res) => {
-    const data = await attrService.getTemplates(req.params.categoryId);
-    sendResponse(res, 200, 'Templates retrieved', data);
-});
+// export const unpublishAllProducts = asyncHandler(async (req, res) => {
+//     await productService.massUnpublish(req.user.id);
+//     sendResponse(res, 200, 'All products have been unpublished successfully');
+// });
 
-export const updateAttributeTemplates = asyncHandler(async (req, res) => {
-    const { categoryId, fields } = req.body;
-    await attrService.updateTemplates(categoryId, fields);
-    sendResponse(res, 200, 'Templates updated successfully');
-});
+// export const removeProduct = asyncHandler(async (req, res) => {
+//     await productService.removeProduct(req.params.id, req.user.id);
+//     sendResponse(res, 200, 'Product deleted successfully');
+// });
 
-export const getAllTemplates = asyncHandler(async (req, res) => {
-    const data = await attrService.getAllTemplates();
-    sendResponse(res, 200, 'All templates retrieved', data);
-});
+// export const getAttributeTemplates = asyncHandler(async (req, res) => {
+//     const data = await attrService.getTemplates(req.params.categoryId);
+//     sendResponse(res, 200, 'Templates retrieved', data);
+// });
 
-export const getProductHistory = asyncHandler(async (req, res) => {
-    const data = await historyService.getHistoryByProduct(req.params.id);
-    sendResponse(res, 200, 'History retrieved successfully', data);
-});
+// export const updateAttributeTemplates = asyncHandler(async (req, res) => {
+//     const { categoryId, fields } = req.body;
+//     await attrService.updateTemplates(categoryId, fields);
+//     sendResponse(res, 200, 'Templates updated successfully');
+// });
+
+// export const getAllTemplates = asyncHandler(async (req, res) => {
+//     const data = await attrService.getAllTemplates();
+//     sendResponse(res, 200, 'All templates retrieved', data);
+// });
+
+// export const getProductHistory = asyncHandler(async (req, res) => {
+//     const data = await historyService.getHistoryByProduct(req.params.id);
+//     sendResponse(res, 200, 'History retrieved successfully', data);
+// });

@@ -14,11 +14,18 @@ export const registerUser = asyncHandler(async (req, res) => {
 });
 
 export const getUserProfile = asyncHandler(async (req, res) => {
+    const user = req.user;
     const data = {
-        id: req.user.id,
-        name: req.user.name,
-        email: req.user.email,
-        level: req.user.level
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        profile: user.role === 'CUSTOMER' ? user.customerProfile : user.adminProfile
     };
     sendResponse(res, 200, 'User profile retrieved', data);
+});
+
+export const getUsers = asyncHandler(async (req, res) => {
+    const data = await userService.getAllUsers(req.query);
+    sendResponse(res, 200, 'Users retrieved successfully', data);
 });

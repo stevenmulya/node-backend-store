@@ -1,0 +1,23 @@
+model ItemAttributeTemplate {
+  id             String        @id @default(uuid())
+  itemCategoryId String        @map("item_category_id")
+  name           String        @db.VarChar(100)
+  type           AttributeType @default(TEXT)
+  createdBy      String?       @map("created_by") @db.VarChar(100)
+  updatedBy      String?       @map("updated_by") @db.VarChar(100)
+  deletedBy      String?       @map("deleted_by") @db.VarChar(100)
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+  deletedAt      DateTime?     @map("deleted_at")
+
+  category       ItemCategory  @relation(fields: [itemCategoryId], references: [id])
+
+  @@map("item_attribute_templates")
+  @@index([itemCategoryId])
+}
+
+enum AttributeType {
+  TEXT
+  NUMBER
+  COLOR
+}

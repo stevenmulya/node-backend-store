@@ -1,0 +1,14 @@
+model CustomerResponse {
+  id              Int      @id @default(autoincrement())
+  userCustomerId  Int      @map("user_customer_id")
+  fieldId         Int      @map("field_id")
+  answer          String   @db.Text
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  customer        UserCustomer      @relation(fields: [userCustomerId], references: [id], onDelete: Cascade)
+  field           CustomerFormField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+
+  @@map("customer_responses")
+  @@index([userCustomerId])
+  @@index([fieldId])
+}

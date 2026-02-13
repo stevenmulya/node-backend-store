@@ -1,0 +1,15 @@
+model UserAdmin {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @unique @map("user_id")
+  fullName    String   @map("full_name") @db.VarChar(100)
+  employeeId  String?  @unique @map("employee_id") @db.VarChar(50)
+  department  String?  @db.VarChar(100)
+  phoneNumber String?  @map("phone_number") @db.VarChar(20)
+  accessLevel Int      @default(1) @map("access_level")
+  lastLoginAt DateTime? @map("last_login_at")
+  lastLoginIp String?   @map("last_login_ip") @db.VarChar(45)
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_admins")
+}

@@ -1,0 +1,15 @@
+model UserCustomerAddress {
+  id              Int      @id @default(autoincrement())
+  userCustomerId  Int      @map("user_customer_id")
+  label           String   @db.VarChar(50)
+  recipientName   String   @map("recipient_name") @db.VarChar(100)
+  recipientPhone  String   @map("recipient_phone") @db.VarChar(20)
+  fullAddress     String   @map("full_address") @db.Text
+  note            String?  @db.VarChar(255)
+  isPrimary       Boolean  @default(false) @map("is_primary")
+
+  customer        UserCustomer @relation(fields: [userCustomerId], references: [id], onDelete: Cascade)
+
+  @@map("user_customer_addresses")
+  @@index([userCustomerId])
+}

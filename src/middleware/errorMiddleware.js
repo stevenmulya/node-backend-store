@@ -8,14 +8,14 @@ const errorHandler = (err, req, res, next) => {
     let statusCode = err.statusCode || 500;
     let message = err.message;
 
-    if (err.name === 'SequelizeValidationError') {
+    if (err.code === 'P2002') {
         statusCode = 400;
-        message = err.errors.map((e) => e.message).join(', ');
+        message = `Duplicate field value: ${err.meta.target}. Data already exists.`;
     }
 
-    if (err.name === 'SequelizeUniqueConstraintError') {
-        statusCode = 400;
-        message = 'Duplicate field value entered. Data already exists.';
+    if (err.code === 'P2025') {
+        statusCode = 404;
+        message = 'Record to update or delete not found.';
     }
 
     if (err.name === 'JsonWebTokenError') {
@@ -29,6 +29,7 @@ const errorHandler = (err, req, res, next) => {
     }
 
     if (statusCode === 500) {
+        console.error('--- INTERNAL ERROR ---');
         console.error(err);
     }
 

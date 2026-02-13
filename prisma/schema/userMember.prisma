@@ -1,0 +1,19 @@
+model UserMember {
+  id              Int       @id @default(autoincrement())
+  userCustomerId  Int       @unique @map("user_customer_id")
+  tier            MemberTier @default(BRONZE)
+  memberNumber    String    @unique @map("member_number") @db.VarChar(50)
+  joinedAt        DateTime  @default(now()) @map("joined_at")
+  expiredAt       DateTime? @map("expired_at")
+
+  customer        UserCustomer @relation(fields: [userCustomerId], references: [id], onDelete: Cascade)
+
+  @@map("user_members")
+}
+
+enum MemberTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+}

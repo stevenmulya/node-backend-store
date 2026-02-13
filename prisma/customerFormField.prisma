@@ -1,0 +1,21 @@
+model CustomerFormField {
+  id          Int      @id @default(autoincrement())
+  label       String   @db.VarChar(255)
+  fieldKey    String   @unique @map("field_key") @db.VarChar(100)
+  type        FieldType @default(TEXT)
+  options     Json?    @db.Json
+  isRequired  Boolean  @default(false) @map("is_required")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  responses   CustomerResponse[]
+
+  @@map("customer_form_fields")
+}
+
+enum FieldType {
+  TEXT
+  NUMBER
+  OPTION
+}
